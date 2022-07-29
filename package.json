@@ -1,0 +1,27 @@
+{
+  "name": "@rally-dfs/evm-token-bonding-curve",
+  "description": "Core contract for EVM chain token bonding curves",
+  "license": "MIT",
+  "version": "0.0.1",
+  "homepage": "https://rly.network",
+  "keywords": [
+    "rally",
+    "token",
+    "bonding",
+    "curve",
+    "v1"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rally-dfs/evm-token-bonding-curve"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "devDependencies": {
+    "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-dev.23",
+    "solhint": "^3.3.7",
+    "solhint-plugin-prettier": "^0.0.5"
+  }
+}
