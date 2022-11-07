@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import "./RallyV1Curve.sol";
 import "./RallyV1CurveDeployer.sol";
+import "./interfaces/IERC20Minimal.sol";
 import "./libraries/TransferHelper.sol";
 
 contract RallyV1CurveFactory is RallyV1CurveDeployer {
@@ -28,7 +30,10 @@ contract RallyV1CurveFactory is RallyV1CurveDeployer {
       initialSupply
     );
 
-    // TransferHelper.safeTransfer(token0, curveAddress, initialSupply);
+    IERC20Minimal(token0).transferFrom(msg.sender, curveAddress, 1);
+    IERC20Minimal(token1).transferFrom(msg.sender, curveAddress, initialSupply);
+
+    RallyV1Curve(curveAddress).sync();
   }
 
   function _deployCurve(

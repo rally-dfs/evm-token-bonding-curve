@@ -3,17 +3,13 @@ pragma solidity ^0.8.13;
 
 import "./interfaces/IERC20Minimal.sol";
 import "./interfaces/IUniswapV2Callee.sol";
-
 import "./libraries/TransferHelper.sol";
-
 import "./RallyV1CurveDeployer.sol";
 
 contract RallyV1Curve {
   address public immutable factory;
-  address public immutable token0;
-  address public immutable token1;
-
-  bool public immutable isToken0Bonded;
+  address public immutable token0; // Always the token represented by the trapezoid area
+  address public immutable token1; // Always the token represented by c
 
   uint256 public immutable initialPrice;
   uint256 public immutable initialSupply;
@@ -43,10 +39,6 @@ contract RallyV1Curve {
       initialPrice,
       initialSupply
     ) = RallyV1CurveDeployer(msg.sender).parameters();
-    // TODO: unlike univ2 TBC curves aren't symmetric. token0 is the bound token and token1 is the reserve token
-    // is not the same as token1 being the bound token and token0 being the reserve token
-    // naming is hard so not changing away from token0/token1 until we have a better idea
-    isToken0Bonded = true;
   }
 
   uint256 private unlocked = 1;
@@ -151,16 +143,8 @@ contract RallyV1Curve {
 
     {
       // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-      uint256 balance0Adjusted = _balance0; // no fee currently: balance0.mul(1000).sub(amount0In.mul(3));
-      uint256 balance1Adjusted = _balance1; // no fee currently: balance1.mul(1000).sub(amount1In.mul(3));
-      // require(
-      //   balance0Adjusted * balance1Adjusted >=
-      //     uint256(_reserve0) * uint256(_reserve1), // no fee currently: .mul(1000**2),
-      //   "UniswapV2: K"
-      // );
-
       /*
-        // area of trapezoid 
+        area of trapezoid 
                / |
               /  |
              /   |
@@ -177,41 +161,12 @@ contract RallyV1Curve {
         area = (r0 + r1) * c / 2
       */
 
-      uint256 c = initialSupply -
-        (isToken0Bonded ? balance0Adjusted : balance1Adjusted);
+      uint256 c = initialSupply - _balance1;
       uint256 r0 = initialPrice;
       uint256 r1 = (slopeNumerator * c) / slopeDenominator + initialPrice;
       uint256 area = ((r0 + r1) * c) / 2;
-      uint256 baseTokenBalance = isToken0Bonded
-        ? balance1Adjusted
-        : balance0Adjusted;
 
-      require(baseTokenBalance >= area, "RallyCurveV1: INVALID_BONDING");
-
-      /*
-      if (isToken0Bonded && amount0Out == 0 || !isToken0Bonded && amount1Out == 0) {
-        // bonded token is being transferred to contract (c is decreasing)
-        // so we need to ensure the amount of base token leftover
-        // matches or is less than the area of the trapezoid 
-        // but if this is the case they can just take all the base token
-
-        require(
-          baseTokenBalance >= area,
-          "RallyCurveV1: INVALID_BONDING"
-        );
-      } else if (isToken0Bonded && amount1Out == 0 || !isToken0Bonded && amount0Out == 0) {
-        // bonded token is being transferred to user (c is increasing)
-        // so we need to ensure the amount of base token leftover
-        // matches or is greater than the area of the trapezoid
-        
-        require(
-          baseTokenBalance >= area,
-          "RallyCurveV1: INVALID_BONDING"
-        );
-      } else {
-        revert("RallyCurveV1: INVALID_SWAP");
-      }
-     */
+      require(_balance0 >= area, "RallyCurveV1: INVALID_BONDING");
     }
 
     _update(_balance0, _balance1);
@@ -221,8 +176,17 @@ contract RallyV1Curve {
 
   // force balances to match reserves
   function skim(address to) external lock {
-    TransferHelper.safeTransfer(token0, to, balance0() - reserve0);
-    TransferHelper.safeTransfer(token1, to, balance1() - reserve1);
+    uint256 _balance0 = balance0();
+    uint256 _balance1 = balance1();
+
+    uint256 c = initialSupply - _balance1;
+    uint256 r0 = initialPrice;
+    uint256 r1 = (slopeNumerator * c) / slopeDenominator + initialPrice;
+    uint256 area = ((r0 + r1) * c) / 2;
+
+    if (_balance0 > area) {
+      TransferHelper.safeTransfer(token0, to, _balance0 - area);
+    }
   }
 
   // force reserves to match balances

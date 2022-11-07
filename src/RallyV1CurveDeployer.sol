@@ -51,7 +51,14 @@ contract RallyV1CurveDeployer {
     curveAddress = address(
       new RallyV1Curve{
         salt: keccak256(
-          abi.encode(token0, token1, slopeNumerator, slopeDenominator)
+          abi.encode(
+            token0,
+            token1,
+            slopeNumerator,
+            slopeDenominator,
+            initialPrice,
+            initialSupply
+          )
         )
       }()
     );
