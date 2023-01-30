@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
 import "./interfaces/IERC20Minimal.sol";
@@ -105,7 +105,7 @@ contract RallyV1Curve {
     );
     (uint112 _reserve0, uint112 _reserve1) = getReserves(); // gas savings
     require(
-      amount0Out < _reserve0 && amount1Out < _reserve1,
+      amount0Out <= _reserve0 && amount1Out <= _reserve1,
       "UniswapV2: INSUFFICIENT_LIQUIDITY"
     );
 

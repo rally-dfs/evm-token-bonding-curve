@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
 import "./RallyV1Curve.sol";
@@ -30,7 +30,6 @@ contract RallyV1CurveFactory is RallyV1CurveDeployer {
       initialSupply
     );
 
-    IERC20Minimal(token0).transferFrom(msg.sender, curveAddress, 1);
     IERC20Minimal(token1).transferFrom(msg.sender, curveAddress, initialSupply);
 
     RallyV1Curve(curveAddress).sync();

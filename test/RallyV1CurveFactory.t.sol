@@ -1,10 +1,11 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "../src/RallyV1Curve.sol";
 import "../src/RallyV1CurveFactory.sol";
+import "../src/libraries/RallyV1CurveLibrary.sol";
 import { MockERC20 } from "solmate/test/utils/mocks/MockERC20.sol";
 
 contract RallyV1CurveFactoryTest is Test {
@@ -82,5 +83,30 @@ contract RallyV1CurveFactoryTest is Test {
     assertEq(slopeDenominator, curve.slopeDenominator());
     assertEq(initialPrice, curve.initialPrice());
     assertEq(initialSupply, curve.initialSupply());
+  }
+
+  function testDeterministicAddress() public {
+    RallyV1Curve deployedCurve = RallyV1Curve(
+      factory.deployCurve(
+        address(token0),
+        address(token1),
+        slopeNumerator,
+        slopeDenominator,
+        initialPrice,
+        initialSupply
+      )
+    );
+
+    address curve = RallyV1CurveLibrary.curveFor(
+      address(factory),
+      address(token0),
+      address(token1),
+      slopeNumerator,
+      slopeDenominator,
+      initialPrice,
+      initialSupply
+    );
+
+    assertEq(address(deployedCurve), curve);
   }
 }
