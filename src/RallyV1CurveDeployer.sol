@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
 import "./RallyV1Curve.sol";
@@ -11,6 +11,10 @@ contract RallyV1CurveDeployer {
     address factory;
     address token0;
     address token1;
+    uint256 slopeNumerator;
+    uint256 slopeDenominator;
+    uint256 initialPrice;
+    uint256 initialSupply;
   }
 
   /// @notice Get the parameters to be used in constructing the token bonding curve, set transiently during coin creation.
@@ -28,16 +32,35 @@ contract RallyV1CurveDeployer {
   function deploy(
     address factory,
     address token0,
-    address token1
+    address token1,
+    uint256 slopeNumerator,
+    uint256 slopeDenominator,
+    uint256 initialPrice,
+    uint256 initialSupply
   ) internal returns (address curveAddress) {
     parameters = Parameters({
       factory: factory,
       token0: token0,
-      token1: token1
+      token1: token1,
+      slopeNumerator: slopeNumerator,
+      slopeDenominator: slopeDenominator,
+      initialPrice: initialPrice,
+      initialSupply: initialSupply
     });
 
     curveAddress = address(
-      new RallyV1Curve{ salt: keccak256(abi.encode(token0, token1))}()
+      new RallyV1Curve{
+        salt: keccak256(
+          abi.encode(
+            token0,
+            token1,
+            slopeNumerator,
+            slopeDenominator,
+            initialPrice,
+            initialSupply
+          )
+        )
+      }()
     );
     delete parameters;
   }
