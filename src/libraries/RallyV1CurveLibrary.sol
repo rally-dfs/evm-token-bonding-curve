@@ -65,19 +65,24 @@ library RallyV1CurveLibrary {
     uint256 slopeNumerator,
     uint256 slopeDenominator
   ) internal pure returns (uint256 amountToken1) {
-    uint256 guess = 0;
+    uint256 guess;
+    uint256 left = 0;
+    uint256 right = balance1;
 
     while (true) {
+      guess = (left + right) / 2;
       uint256 c = initialSupply - (balance1 - guess);
       uint256 r0 = initialPrice;
       uint256 r1 = (slopeNumerator * c) / slopeDenominator + initialPrice;
       uint256 area = ((r0 + r1) * c) / 2;
       uint256 resultAmountToken0 = area - balance0;
 
-      if (resultAmountToken0 >= amountToken0) {
-        break;
+      if (resultAmountToken0 > amountToken0) {
+        right = guess;
+      } else if (resultAmountToken0 < amountToken0) {
+        left = guess;
       } else {
-        guess = guess + 1;
+        break;
       }
     }
 
