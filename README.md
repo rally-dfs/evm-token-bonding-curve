@@ -14,4 +14,4 @@ See https://github.com/Uniswap/v3-core for the inspiration behind the deploy pro
 
 # Running tests
 
-Make sure you have a [foundry](https://github.com/foundry-rs/foundry) local install and run `forge test` in the root directory
+Make sure you have a [foundry](https://github.com/foundry-rs/foundry) local install and run `git submodule update --init --recursive` to get the submodule dependencies and then run `forge test` in the root directory
